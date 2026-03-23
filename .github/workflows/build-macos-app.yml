@@ -30,15 +30,13 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+          cache: "pip"
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install -r desktop_requirements.txt
-
-      - name: Install Playwright Chromium
-        run: python -m playwright install chromium
 
       - name: Build macOS app
         run: python build_mac_app.py
