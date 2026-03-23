@@ -83,6 +83,18 @@ def build_icns() -> Path | None:
     return ICNS_ICON
 
 
+def copy_runtime_assets(app_bundle: Path) -> None:
+    resources_dir = app_bundle / "Contents" / "Resources"
+    bundled_bin_dir = resources_dir / "bin"
+    if bundled_bin_dir.exists():
+        shutil.rmtree(bundled_bin_dir)
+    shutil.copytree(BIN_DIR, bundled_bin_dir)
+
+    ffmpeg_path = bundled_bin_dir / "ffmpeg"
+    if ffmpeg_path.exists():
+        os.chmod(ffmpeg_path, 0o755)
+
+
 def main() -> int:
     ensure_macos()
 
@@ -122,8 +134,6 @@ def main() -> int:
         APP_NAME,
         "--add-data",
         "code2video.html:.",
-        "--add-data",
-        "bin:bin",
         "--collect-all",
         "playwright",
         "--collect-all",
@@ -141,6 +151,14 @@ def main() -> int:
 
     print("[*] Running PyInstaller...")
     subprocess.run(pyinstaller_cmd, check=True)
+
+    app_bundle = DIST_DIR / f"{APP_NAME}.app"
+    if not app_bundle.exists():
+        print(f"[!] Expected app bundle was not created: {app_bundle}")
+        raise SystemExit(1)
+
+    print("[*] Copying runtime assets into app bundle...")
+    copy_runtime_assets(app_bundle)
 
     archive_base = DIST_DIR / f"{APP_NAME}-macos"
     shutil.make_archive(str(archive_base), "zip", root_dir=DIST_DIR, base_dir=f"{APP_NAME}.app")
