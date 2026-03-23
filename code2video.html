@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODE2VIDEO</title>
+<meta name="code2video-api-base" content="">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Unbounded:wght@700;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --ink: #f0ede6;
+  --dim: #3a3a3a;
+  --line: #1e1e1e;
+  --go: #c8ff00;
+  --burn: #ff4400;
+  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Unbounded', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* ── HEADER ── */
+header {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wordmark {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wordmark span { color: var(--go); }
+
+.badge {
+  font-size: 0.55rem;
+  letter-spacing: 3px;
+  color: var(--go);
+  text-transform: uppercase;
+  border: 1px solid var(--go);
+  padding: 3px 8px;
+  background: rgba(200,255,0,0.05);
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  min-height: 0;
+}
+
+/* ── LEFT: CODE PANEL ── */
+.code-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--line);
+}
+
+.panel-header {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dot-row { display: flex; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.r { background: #ff4d4d; }
+.dot.y { background: #ffd700; }
+.dot.g { background: var(--go); }
+
+#codeInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #a8e6a3;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.8;
+  padding: 20px;
+  resize: none;
+  outline: none;
+  caret-color: var(--go);
+  tab-size: 2;
+  min-height: 360px;
+}
+
+#codeInput::placeholder { color: #2a2a2a; }
+
+.ai-hint {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  font-size: 0.58rem;
+  color: var(--dim);
+  line-height: 1.7;
+}
+
+.ai-hint strong { color: var(--go); }
+
+/* ── RIGHT: CONTROL PANEL ── */
+.ctrl-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ctrl-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ctrl-label {
+  font-size: 0.55rem;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.setting-row label {
+  font-size: 0.65rem;
+  color: var(--ink);
+  letter-spacing: 1px;
+}
+
+.setting-row input[type=range] {
+  width: 120px;
+  accent-color: var(--go);
+}
+
+.setting-row .val {
+  font-size: 0.65rem;
+  color: var(--go);
+  width: 40px;
+  text-align: right;
+}
+
+select {
+  background: var(--line);
+  border: 1px solid var(--dim);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 6px 10px;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── PREVIEW ── */
+.preview-wrap {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#previewContainer {
+  background: #000;
+  border: 1px solid var(--line);
+  flex: 1;
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#previewStage {
+  position: relative;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: #050505;
+}
+
+#liveFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: none;
+  display: block;
+  background: #000;
+  transform-origin: top left;
+}
+
+.preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.85);
+  font-size: 0.7rem;
+  color: var(--dim);
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 12px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.preview-overlay.encoding {
+  background: rgba(0,0,0,0.95);
+  color: var(--go);
+  font-family: var(--display);
+  font-weight: 700;
+  border: 1px solid var(--go);
+}
+
+.timing-summary {
+  margin-top: 10px;
+  font-size: 0.58rem;
+  line-height: 1.6;
+  letter-spacing: 1.4px;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+.pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── PROGRESS ── */
+.progress-wrap {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: #0d0d0d;
+}
+.progress-pct {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--go);
+  line-height: 1;
+  margin-bottom: 10px;
+  letter-spacing: -2px;
+  transition: color 0.2s;
+}
+.progress-pct.idle { color: #2a2a2a; font-size: 1rem; letter-spacing: 2px; font-family: var(--mono); }
+.progress-bar-bg {
+  width: 100%;
+  height: 5px;
+  background: var(--line);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--go);
+  width: 0%;
+  transition: width 0.12s ease-out;
+  box-shadow: 0 0 10px var(--go);
+}
+.progress-text {
+  font-size: 0.58rem;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+.progress-eta {
+  font-size: 0.54rem;
+  color: #2a2a2a;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* ── ACTION BUTTONS ── */
+.actions {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  font-family: var(--display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  transition: all 0.12s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-preview {
+  background: var(--line);
+  color: var(--ink);
+  border: 1px solid var(--dim);
+}
+
+.btn-preview:hover { border-color: var(--ink); }
+
+.btn-convert {
+  background: var(--go);
+  color: #000;
+}
+
+.btn-convert:hover { background: #d4ff20; transform: translateY(-1px); }
+.btn-convert:active { transform: translateY(0); }
+.btn-convert:disabled {
+  background: #1a2200;
+  color: #3a4a00;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-download {
+  background: transparent;
+  border: 1px solid var(--burn);
+  color: var(--burn);
+}
+
+.btn-download:hover { background: rgba(255,68,0,0.1); }
+.btn-download:disabled { opacity: 0.2; cursor: not-allowed; }
+.btn-download.blink {
+  animation: dlblink 0.5s ease-in-out infinite alternate;
+  border-color: var(--go);
+  color: var(--go);
+}
+@keyframes dlblink {
+  from { background: transparent; box-shadow: none; }
+  to   { background: rgba(200,255,0,0.15); box-shadow: 0 0 20px rgba(200,255,0,0.4); }
+}
+
+/* ── STATUS ── */
+#statusBar {
+  padding: 10px 20px;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--dim);
+  border-top: 1px solid var(--line);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#statusBar.ok { color: var(--go); }
+#statusBar.err { color: var(--burn); }
+#statusBar.busy { color: #ffd700; }
+
+.spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── FOOTER ── */
+footer {
+  padding: 10px 28px;
+  border-top: 1px solid var(--line);
+  font-size: 0.5rem;
+  color: #252525;
+  letter-spacing: 2px;
+  display: flex;
+  justify-content: space-between;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">CODE<span>2</span>VIDEO</div>
+  <div class="badge">Backend Connected · Native Engine</div>
+</header>
+
+<main>
+  <!-- LEFT: CODE INPUT -->
+  <div class="code-panel">
+    <div class="panel-header">
+      <span>Animation Code (HTML / CSS / JS)</span>
+      <div class="dot-row">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+      </div>
+    </div>
+    <textarea id="codeInput" spellcheck="false" placeholder="<!-- Paste your AI-generated animation code here -->
+<!-- Works best with Canvas API animations -->
+
+<!DOCTYPE html>
+<html>
+<body style=&quot;margin:0;background:#000&quot;>
+<canvas id=&quot;c&quot; width=&quot;540&quot; height=&quot;960&quot;></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let start = null;
+
+function draw(ts) {
+  if (!start) start = ts;
+  const t = (ts - start) / 1000;
+  
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0,0,540,960);
+  
+  ctx.font = 'bold 100px sans-serif';
+  ctx.fillStyle = '#c8ff00';
+  ctx.textAlign = 'center';
+  ctx.fillText('YOUR', 270, 400 + Math.sin(t*2)*40);
+  ctx.fillText('REEL', 270, 520 + Math.cos(t*2)*40);
+  
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+&lt;/script&gt;
+</body>
+</html>"></textarea>
+    <div class="ai-hint">
+      💡 <strong>AI Prompt tip:</strong> Tell ChatGPT/Gemini — <em>"Create a canvas animation in a single HTML file. Use requestAnimationFrame. Canvas size 540×960."</em><br>
+    </div>
+  </div>
+
+  <!-- RIGHT: CONTROLS -->
+  <div class="ctrl-panel">
+
+    <div class="ctrl-section">
+      <div class="ctrl-label">Export Settings</div>
+
+      <div class="setting-row">
+        <label>Timing</label>
+        <span class="val" id="timingMode">AUTO</span>
+      </div>
+      <div class="timing-summary" id="timingSummary">Auto capture samples at 60 FPS and stops when motion settles.</div>
+
+      <div class="setting-row" style="margin-top:10px">
+        <label>Resolution</label>
+      </div>
+      <select id="resolution" onchange="queuePreviewScale()">
+        <option value="1280x720">16:9 — 720p (Horizontal)</option>
+        <option value="720x1280">9:16 — 720p (Vertical)</option>
+        <option value="540x960" selected>9:16 — 540p (Mobile)</option>
+        <option value="720x720">1:1 — 720p (Square)</option>
+      </select>
+
+      <div class="setting-row" style="margin-top:10px">
+        <label>Bitrate</label>
+      </div>
+      <select id="bitrate">
+        <option value="1M">1 Mbps (Smallest)</option>
+        <option value="2M">2 Mbps (Standard)</option>
+        <option value="5M" selected>5 Mbps (High Quality)</option>
+        <option value="10M">10 Mbps (Very High)</option>
+        <option value="20M">20 Mbps (Near Lossless)</option>
+      </select>
+
+      <div class="setting-row" style="margin-top:10px">
+        <label>Output</label>
+        <span class="val">MP4</span>
+      </div>
+    </div>
+
+    <div class="preview-wrap">
+      <div class="ctrl-label">Live Preview</div>
+      <div id="previewContainer">
+        <div id="previewStage">
+          <iframe id="liveFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+          <div class="preview-overlay" id="previewOverlay">↑ paste code, hit preview</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-pct idle" id="progressPct">READY</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">WAITING</div>
+      <div class="progress-eta" id="progressEta">&nbsp;</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-preview" onclick="runPreview()">▶ Preview</button>
+      <button class="btn btn-convert" id="btnConvert" onclick="startConvert()">⚡ Convert to Video</button>
+      <button class="btn btn-download" id="btnDownload" onclick="downloadVideo()" disabled>↓ Download</button>
+    </div>
+
+    <div id="statusBar">STANDBY</div>
+
+  </div>
+</main>
+
+<footer>
+  <span>backend chromium + ffmpeg · temporary export</span>
+  <span>code2video · beta</span>
+</footer>
+
+<script src="/api/config.js"></script>
+<script>
+let resultVideoUrl = null;
+let resultVideoFilename = '';
+const OUTPUT_FORMAT = 'mp4';
+
+const CAPTURE_SETTINGS = Object.freeze({
+  frameRate: 60,
+  minDuration: 0.35,
+  settleWindow: 0.45,
+  maxDuration: 12
+});
+const API_BASE = resolveApiBase();
+
+// ── STATUS ──────────────────────────────────────────────
+
+function setStatus(msg, type = '') {
+  const el = document.getElementById('statusBar');
+  el.className = type;
+  el.innerHTML = type === 'busy'
+    ? `<span class="spin">⟳</span> ${msg}`
+    : msg;
+}
+
+function setProgress(pct, label, eta = '') {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = label;
+  const pctEl = document.getElementById('progressPct');
+  const etaEl = document.getElementById('progressEta');
+  if (pct > 0 && pct < 100) {
+    pctEl.textContent = Math.round(pct) + '%';
+    pctEl.classList.remove('idle');
+  } else if (pct === 0) {
+    pctEl.textContent = 'READY';
+    pctEl.classList.add('idle');
+  } else {
+    pctEl.textContent = '100%';
+    pctEl.classList.remove('idle');
+  }
+  if (eta) etaEl.textContent = eta;
+  else etaEl.innerHTML = '&nbsp;';
+}
+
+function revokeResultVideoUrl() {
+  if (!resultVideoUrl) return;
+  URL.revokeObjectURL(resultVideoUrl);
+  resultVideoUrl = null;
+}
+
+function clearResultVideo() {
+  revokeResultVideoUrl();
+  resultVideoFilename = '';
+  const panel = document.getElementById('dl-panel');
+  if (panel) panel.remove();
+}
+
+async function storeRenderResult(response, ext) {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || 'Backend rendering failed');
+  }
+
+  const blob = await response.blob();
+  revokeResultVideoUrl();
+  resultVideoUrl = URL.createObjectURL(blob);
+  resultVideoFilename = response.headers.get('X-Render-Filename') || `code2video_${Date.now()}.${ext}`;
+}
+
+function setTimingSummary(message) {
+  document.getElementById('timingSummary').textContent = message;
+}
+
+function formatTimelineTime(seconds) {
+  const safe = Math.max(0, Number(seconds) || 0);
+  if (safe >= 60) {
+    const mins = Math.floor(safe / 60);
+    const secs = (safe - mins * 60).toFixed(2).padStart(5, '0');
+    return `${mins}:${secs}`;
+  }
+  return `${safe.toFixed(2)}s`;
+}
+
+function updateTimingSummary(message = '') {
+  if (message) {
+    setTimingSummary(message);
+    return;
+  }
+
+  const backendLabel = API_BASE ? ` via ${new URL(API_BASE, window.location.href).host}` : '';
+  setTimingSummary(`Backend Chromium renders at ${CAPTURE_SETTINGS.frameRate} FPS${backendLabel}. Max ${formatTimelineTime(CAPTURE_SETTINGS.maxDuration)}.`);
+}
+
+function resolveApiBase() {
+  const meta = document.querySelector('meta[name="code2video-api-base"]')?.content?.trim();
+  const query = new URLSearchParams(window.location.search).get('api')?.trim();
+  const stored = window.localStorage.getItem('code2video.apiBase')?.trim();
+  const explicit = window.CODE2VIDEO_API_BASE?.trim();
+  const value = explicit || query || meta || stored || '';
+
+  if (query) window.localStorage.setItem('code2video.apiBase', query);
+  return value.replace(/\/+$/, '');
+}
+
+function buildApiUrl(path) {
+  const relative = path.startsWith('/') ? path : `/${path}`;
+  return API_BASE ? `${API_BASE}${relative}` : relative;
+}
+
+function explainBackendError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(message)) {
+    if (API_BASE) return `Cannot reach backend at ${API_BASE}`;
+    return 'Cannot reach backend render service';
+  }
+  return message;
+}
+
+// ── PREVIEW ──────────────────────────────────────────────
+
+let previewScaleFrame = 0;
+let previewResizeObserver = null;
+
+function queuePreviewScale() {
+  if (previewScaleFrame) cancelAnimationFrame(previewScaleFrame);
+  previewScaleFrame = requestAnimationFrame(() => {
+    previewScaleFrame = 0;
+    updatePreviewScale();
+  });
+}
+
+function updatePreviewScale() {
+  const container = document.getElementById('previewContainer');
+  const stage = document.getElementById('previewStage');
+  const iframe = document.getElementById('liveFrame');
+  const { width, height } = getDimensions();
+
+  if (!container || !stage || !iframe) return;
+
+  const containerWidth = Math.max(container.clientWidth, 1);
+  const containerHeight = Math.max(container.clientHeight, 1);
+  const scale = Math.min(containerWidth / width, containerHeight / height);
+  const safeScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  const scaledWidth = width * safeScale;
+  const scaledHeight = height * safeScale;
+
+  stage.style.width = `${scaledWidth}px`;
+  stage.style.height = `${scaledHeight}px`;
+  iframe.style.width = `${width}px`;
+  iframe.style.height = `${height}px`;
+  iframe.style.transform = `scale(${safeScale})`;
+}
+
+async function runPreview() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (!code) { setStatus('paste some code first', 'err'); return; }
+  const iframe = document.getElementById('liveFrame');
+  iframe.onload = () => {
+    queuePreviewScale();
+  };
+  iframe.srcdoc = code;
+  document.getElementById('previewOverlay').style.display = 'none';
+  queuePreviewScale();
+  setStatus('PREVIEW RUNNING', 'ok');
+}
+
+window.addEventListener('load', () => {
+  queuePreviewScale();
+  updateTimingSummary();
+  const codeInput = document.getElementById('codeInput');
+  if (codeInput) codeInput.addEventListener('input', () => updateTimingSummary());
+  if ('ResizeObserver' in window) {
+    const container = document.getElementById('previewContainer');
+    if (container) {
+      previewResizeObserver = new ResizeObserver(() => queuePreviewScale());
+      previewResizeObserver.observe(container);
+    }
+  }
+});
+
+window.addEventListener('resize', queuePreviewScale);
+queuePreviewScale();
+
+// ── MAIN CONVERT ──────────────────────────────────────────
+
+async function startConvert() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (!code) { setStatus('bhai code paste karo pehle', 'err'); return; }
+
+  document.getElementById('btnConvert').disabled = true;
+  document.getElementById('btnDownload').disabled = true;
+  document.getElementById('btnDownload').classList.remove('blink');
+  clearResultVideo();
+
+  setStatus('Rendering...', 'busy');
+  setProgress(4, 'RENDERING...');
+  updateTimingSummary(`Backend Chromium is rendering at ${CAPTURE_SETTINGS.frameRate} FPS and will return a final MP4.`);
+
+  try {
+    await renderWithPlaywrightBackend(code);
+    document.getElementById('btnDownload').disabled = false;
+    document.getElementById('btnDownload').classList.add('blink');
+    downloadVideo(); 
+  } catch(e) {
+    setStatus('ERROR: ' + explainBackendError(e), 'err');
+    setProgress(0, 'FAILED');
+    console.error(e);
+  }
+
+  document.getElementById('btnConvert').disabled = false;
+}
+
+// ── HELPERS ──────────────────────────────────────────────
+
+function getDimensions() {
+  const res = document.getElementById('resolution').value;
+  const [w, h] = res.split('x').map(Number);
+  return { width: w, height: h };
+}
+
+async function renderWithPlaywrightBackend(code) {
+  const bitrate = document.getElementById('bitrate').value;
+  const { width, height } = getDimensions();
+  const startedAt = Date.now();
+  const expectedSeconds = Math.max(12, Math.round((width * height) / (1280 * 720) * 18));
+
+  setStatus('Rendering...', 'busy');
+
+  const progressTimer = setInterval(() => {
+    const elapsed = (Date.now() - startedAt) / 1000;
+    const pct = Math.min(12 + (elapsed / expectedSeconds) * 78, 92);
+    const remaining = Math.max(0, expectedSeconds - elapsed);
+    setProgress(pct, 'RENDERING...', remaining > 1 ? `ETA ~${Math.ceil(remaining)}s` : 'rendering...');
+  }, 500);
+
+  try {
+    const response = await fetch(buildApiUrl('/render'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        width,
+        height,
+        bitrate,
+        frameRate: CAPTURE_SETTINGS.frameRate,
+        maxDuration: CAPTURE_SETTINGS.maxDuration,
+        minDuration: CAPTURE_SETTINGS.minDuration,
+        settleWindow: CAPTURE_SETTINGS.settleWindow
+      })
+    });
+
+    await storeRenderResult(response, OUTPUT_FORMAT);
+    setProgress(100, 'DONE');
+    setStatus('✓ Video ready', 'ok');
+    updateTimingSummary(`Backend Chromium rendered ${width}x${height} at ${CAPTURE_SETTINGS.frameRate} FPS.`);
+  } finally {
+    clearInterval(progressTimer);
+  }
+}
+
+// ── DOWNLOAD ──────────────────────────────────────────────
+
+function downloadVideo() {
+  if (!resultVideoUrl) { setStatus('No video yet — convert first', 'err'); return; }
+  showDownloadPanel(resultVideoUrl, resultVideoFilename);
+}
+
+function showDownloadPanel(url, filename) {
+  const old = document.getElementById('dl-panel');
+  if (old) old.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'dl-panel';
+  panel.style.cssText = `
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.92); z-index:99999;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px;
+    font-family:'IBM Plex Mono',monospace;
+  `;
+
+  const previewEl = document.createElement('video');
+
+  previewEl.src = url;
+  previewEl.style.cssText = 'max-height:50vh; max-width:90vw; border:2px solid #c8ff00; background:#000;';
+  previewEl.controls = true;
+  previewEl.autoplay = true;
+  previewEl.loop = true;
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.cssText = `
+    display:inline-block; padding:14px 40px;
+    background:#c8ff00; color:#000;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.85rem; font-weight:900;
+    letter-spacing:3px; text-decoration:none;
+    text-transform:uppercase;
+    animation: dlblink 0.5s ease-in-out infinite alternate;
+  `;
+  a.textContent = '↓ CLICK TO DOWNLOAD .MP4';
+  a.addEventListener('click', () => {
+    setStatus('Download started...', 'busy');
+    setTimeout(() => {
+      clearResultVideo();
+      document.getElementById('btnDownload').disabled = true;
+      document.getElementById('btnDownload').classList.remove('blink');
+      setStatus('Downloaded render cleared', 'ok');
+    }, 1500);
+  }, { once: true });
+
+  const close = document.createElement('button');
+  close.textContent = '✕ close';
+  close.style.cssText = `background:transparent; border:1px solid #333; color:#555;
+    font-family:'IBM Plex Mono',monospace; font-size:0.65rem; padding:6px 16px;
+    cursor:pointer; letter-spacing:2px; margin-top:10px;`;
+  close.onclick = () => panel.remove();
+
+  const info = document.createElement('div');
+  info.style.cssText = 'color:#3a3a3a; font-size:0.55rem; letter-spacing:2px; text-transform:uppercase;';
+  info.textContent = 'TEMPORARY RENDER · NOT SAVED ON BACKEND · MP4';
+
+  panel.appendChild(previewEl);
+  panel.appendChild(a);
+  panel.appendChild(info);
+  panel.appendChild(close);
+  document.body.appendChild(panel);
+}
+
+window.addEventListener('beforeunload', revokeResultVideoUrl);
+</script>
+
+</body>
+</html>

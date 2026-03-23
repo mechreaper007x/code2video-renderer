@@ -1,0 +1,8 @@
+__pycache__/
+node_modules/
+renders/
+*.pyc
+*.pyo
+*.log
+conductor/
+.github/

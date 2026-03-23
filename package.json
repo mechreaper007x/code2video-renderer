@@ -1,0 +1,12 @@
+{
+  "name": "code2video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render:playwright": "node playwright_render.mjs",
+    "install:browsers": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
