@@ -3,15 +3,19 @@
 import base64
 import os
 import sys
+import platform
 from pathlib import Path
 
 from serve import server_url, start_server, stop_server
 
+IS_WINDOWS = platform.system() == "Windows"
+FFMPEG_NAME = "ffmpeg.exe" if IS_WINDOWS else "ffmpeg"
 
 def resolve_resource_path(relative_path: str) -> Path:
     """Get absolute path to resource, works for dev and for PyInstaller"""
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
+        # For macOS .app, _MEIPASS points to Contents/Resources
         return Path(sys._MEIPASS) / relative_path
     return Path(__file__).resolve().parent / relative_path
 
@@ -55,17 +59,23 @@ def main() -> int:
         print("Install it with: pip install -r desktop_requirements.txt")
         return 1
 
-    # --- PACKAGING LOGIC ---
+    # --- CROSS-PLATFORM PACKAGING LOGIC ---
     # Configure Playwright to use the bundled browser
     bundled_browsers = resolve_resource_path("bin/browsers")
     if bundled_browsers.exists():
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(bundled_browsers)
     
     # Configure FFmpeg to use the bundled binary
-    bundled_ffmpeg = resolve_resource_path("bin/ffmpeg.exe")
+    bundled_ffmpeg = resolve_resource_path(f"bin/{FFMPEG_NAME}")
     if bundled_ffmpeg.exists():
         os.environ["FFMPEG_EXE"] = str(bundled_ffmpeg)
-    # -----------------------
+        # Ensure executable permission on Unix
+        if not IS_WINDOWS:
+            try:
+                os.chmod(bundled_ffmpeg, 0o755)
+            except Exception:
+                pass
+    # ---------------------------------------
 
     os.environ.setdefault("CODE2VIDEO_NO_BROWSER", "1")
     server, _thread = start_server(host="127.0.0.1", port=0)
