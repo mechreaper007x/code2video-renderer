@@ -14,7 +14,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 try:
     import imageio_ffmpeg
@@ -25,6 +25,11 @@ except ImportError:
     exit(1)
 
 ALLOWED_ORIGINS = [origin.strip() for origin in os.environ.get("CODE2VIDEO_CORS_ORIGIN", "*").split(",") if origin.strip()]
+
+
+class CODE2VIDEOServer(ThreadingHTTPServer):
+    daemon_threads = True
+    allow_reuse_address = True
 
 class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -49,25 +54,37 @@ class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path == '/':
-            self.send_response(301)
-            self.send_header('Location', '/code2video.html')
-            self.end_headers()
+        try:
+            if self.path == '/':
+                self.send_response(301)
+                self.send_header('Location', '/code2video.html')
+                self.end_headers()
+                return
+            if self.path == '/api/config.js':
+                return self._send_runtime_config()
+            if self.path == '/health':
+                return self._send_json({'ok': True})
+            return super().do_GET()
+        except (BrokenPipeError, ConnectionResetError):
             return
-        if self.path == '/api/config.js':
-            return self._send_runtime_config()
-        if self.path == '/health':
-            return self._send_json({'ok': True})
-        return super().do_GET()
+        except Exception as exc:
+            print(f"  [SERVER] GET error: {exc}")
+            self._safe_text_error('Backend request failed.', 500)
 
     def do_POST(self):
-        if self._origin_forbidden():
-            self.send_error(403, "Origin not allowed")
+        try:
+            if self._origin_forbidden():
+                self.send_error(403, "Origin not allowed")
+                return
+            if self.path == '/render':
+                self._handle_render()
+            else:
+                self.send_error(404)
+        except (BrokenPipeError, ConnectionResetError):
             return
-        if self.path == '/render':
-            self._handle_render()
-        else:
-            self.send_error(404)
+        except Exception as exc:
+            print(f"  [SERVER] POST error: {exc}")
+            self._safe_text_error('Backend render failed.', 500)
 
     def _handle_render(self):
         content_length = int(self.headers['Content-Length'])
@@ -141,7 +158,10 @@ class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Disposition', f'inline; filename="{filename}"')
         self.send_header('X-Render-Filename', filename)
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            return
         print(f"  [SERVER] OK Sent temporary render: {filename}")
 
     def _send_json(self, payload, status=200):
@@ -150,7 +170,10 @@ class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            return
 
     def _send_text_error(self, message, status=500):
         data = message.encode('utf-8', errors='replace')
@@ -158,7 +181,16 @@ class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'text/plain; charset=utf-8')
         self.send_header('Content-Length', str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            return
+
+    def _safe_text_error(self, message, status=500):
+        try:
+            self._send_text_error(message, status)
+        except (BrokenPipeError, ConnectionResetError):
+            return
 
     def _send_runtime_config(self):
         api_base = os.environ.get("CODE2VIDEO_API_BASE", "").rstrip("/")
@@ -167,7 +199,10 @@ class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/javascript; charset=utf-8")
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
-        self.wfile.write(payload)
+        try:
+            self.wfile.write(payload)
+        except (BrokenPipeError, ConnectionResetError):
+            return
 
     def _cors_origin(self):
         request_origin = self.headers.get("Origin")
@@ -188,7 +223,7 @@ class CODE2VIDEOHandler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "3000"))
     host = os.environ.get("HOST", "0.0.0.0")
-    server = HTTPServer((host, port), CODE2VIDEOHandler)
+    server = CODE2VIDEOServer((host, port), CODE2VIDEOHandler)
     url = f"http://localhost:{port}"
     
     print(f"\n  CODE2VIDEO ENGINE ACTIVE (Backend FFmpeg Mode)")
