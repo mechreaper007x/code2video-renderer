@@ -7,212 +7,132 @@
   <meta name="description" content="Turn HTML, CSS, and JavaScript animations into polished MP4 videos with a desktop renderer powered by Chromium and FFmpeg.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="page-shell">
+  <div class="site-shell">
     <header class="site-header">
       <a class="brand" href="#top" aria-label="CODE2VIDEO home">
         <span class="brand-mark">C2V</span>
-        <span class="brand-text">CODE2VIDEO</span>
+        <span class="brand-name">CODE2VIDEO</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
         <a href="#features">Features</a>
         <a href="#workflow">Workflow</a>
         <a href="#downloads">Downloads</a>
       </nav>
-      <a class="button button-secondary" href="#downloads">Get the App</a>
     </header>
 
     <main id="top">
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">Desktop HTML-to-video renderer</p>
-          <h1>Turn motion code into <span>showcase-ready video</span>.</h1>
+          <h1>Turn motion code into clean video output.</h1>
           <p class="hero-text">
-            CODE2VIDEO renders your HTML, CSS, and JavaScript animations into clean MP4 output through a desktop app,
-            so your demos, reels, UI loops, and launch clips feel finished instead of improvised.
+            CODE2VIDEO is a desktop app for rendering HTML, CSS, and JavaScript animations into MP4 files using Chromium and FFmpeg.
+            It is built for demos, promo clips, UI motion, social videos, and product showcases.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#downloads">Download for Windows</a>
-            <a class="button button-ghost" href="#proof">See What It Ships</a>
+            <a class="button button-primary" href="https://github.com/mechreaper007x/code2video-renderer/releases/download/v1.0.0/CODE2VIDEO-Setup.exe">Download for Windows</a>
+            <a class="button button-secondary" href="https://github.com/mechreaper007x/code2video-renderer/releases/download/v1.0.0/CODE2VIDEO-macos.zip">Download for macOS</a>
           </div>
-          <ul class="hero-meta" aria-label="Highlights">
-            <li>Local desktop renderer</li>
-            <li>Chromium-accurate frames</li>
-            <li>Native Save As export flow</li>
-          </ul>
+          <p class="hero-note">macOS build is currently beta.</p>
         </div>
 
-        <div class="hero-stage" aria-label="App preview">
-          <div class="stage-window">
-            <div class="stage-topbar">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <div class="stage-layout">
-              <aside class="stage-sidebar">
-                <div class="sidebar-block sidebar-title">CODE PANEL</div>
-                <div class="sidebar-line"></div>
-                <div class="sidebar-line short"></div>
-                <div class="sidebar-line"></div>
-                <div class="sidebar-line tiny"></div>
-                <div class="sidebar-block sidebar-tag">16:9 720p</div>
-                <div class="sidebar-line"></div>
-                <div class="sidebar-line short"></div>
-                <div class="sidebar-action">Render MP4</div>
-              </aside>
-              <div class="stage-preview">
-                <div class="demo-video-shell">
-                  <video
-                    class="demo-video"
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="metadata"
-                    controls
-                  >
-                    <source src="./demo-video.mp4" type="video/mp4">
-                    Your browser does not support the demo video.
-                  </video>
-                </div>
-                <div class="stage-caption">
-                  <strong>Preview surface</strong>
-                  <span>Exact frame ratio, desktop export path, no cloud lag.</span>
-                </div>
-              </div>
-            </div>
+        <div class="hero-media">
+          <div class="video-card">
+            <video class="demo-video" autoplay muted loop playsinline preload="metadata" disablepictureinpicture oncontextmenu="return false;">
+              <source src="./demo-video.mp4" type="video/mp4">
+              Your browser does not support the demo video.
+            </video>
           </div>
         </div>
       </section>
 
-      <section class="stats-strip" aria-label="Key stats">
-        <div>
+      <section class="summary">
+        <div class="summary-item">
           <strong>Desktop-first</strong>
-          <span>No browser upload dependency</span>
+          <span>Local rendering flow with native save dialog support.</span>
         </div>
-        <div>
+        <div class="summary-item">
           <strong>Chromium + FFmpeg</strong>
-          <span>Browser-accurate rendering stack</span>
+          <span>Browser-accurate rendering with direct MP4 output.</span>
         </div>
-        <div>
-          <strong>MP4 output</strong>
-          <span>Ready for Premiere and DaVinci workflows</span>
+        <div class="summary-item">
+          <strong>Editor-friendly</strong>
+          <span>Export files that fit normal creative workflows.</span>
         </div>
       </section>
 
-      <section class="section-grid" id="features">
-        <div class="section-head">
-          <p class="eyebrow">Why it looks serious</p>
-          <h2>Built like a renderer, not a gimmick.</h2>
+      <section class="section" id="features">
+        <div class="section-heading">
+          <p class="eyebrow">Features</p>
+          <h2>Built for code-driven motion.</h2>
         </div>
         <div class="card-grid">
-          <article class="feature-card">
+          <article class="card">
             <h3>Desktop rendering</h3>
-            <p>No remote service dependency in the core flow. The product runs as an actual desktop app and exports locally.</p>
+            <p>The app runs locally instead of depending on a browser upload pipeline.</p>
           </article>
-          <article class="feature-card">
-            <h3>Code-native motion</h3>
-            <p>Use HTML, CSS, and JavaScript for motion graphics, UI loops, demos, teaser videos, and developer-first promo clips.</p>
-          </article>
-          <article class="feature-card">
+          <article class="card">
             <h3>Real browser output</h3>
-            <p>Final frames come from Chromium, then FFmpeg handles the MP4 encode. The result looks like the browser, not a fake canvas snapshot.</p>
+            <p>Frames are rendered through Chromium before FFmpeg handles the final encode.</p>
           </article>
-          <article class="feature-card">
-            <h3>Creator-friendly export</h3>
-            <p>Native Save As support lets users choose where the render lands, which makes it feel like software instead of a web toy.</p>
+          <article class="card">
+            <h3>Simple export flow</h3>
+            <p>Preview, render, and save directly to the location you choose.</p>
           </article>
         </div>
       </section>
 
-      <section class="workflow-section" id="workflow">
-        <div class="section-head narrow">
+      <section class="section" id="workflow">
+        <div class="section-heading">
           <p class="eyebrow">Workflow</p>
-          <h2>From snippet to final frame in one flow.</h2>
+          <h2>Write. Preview. Render. Save.</h2>
         </div>
-        <div class="workflow-rail">
-          <article class="workflow-step">
+        <div class="steps">
+          <article class="step">
             <span>01</span>
-            <h3>Paste or write the animation</h3>
-            <p>Drop in your HTML, CSS, and JavaScript directly inside the app.</p>
+            <h3>Write the animation</h3>
+            <p>Paste or build your HTML, CSS, and JavaScript directly in the app.</p>
           </article>
-          <article class="workflow-step">
+          <article class="step">
             <span>02</span>
-            <h3>Preview the composition</h3>
-            <p>Choose the output ratio and inspect the crop before rendering.</p>
+            <h3>Check the frame</h3>
+            <p>Preview the selected ratio before committing to the export.</p>
           </article>
-          <article class="workflow-step">
+          <article class="step">
             <span>03</span>
-            <h3>Render locally</h3>
-            <p>The desktop renderer drives Chromium and FFmpeg for final MP4 export.</p>
-          </article>
-          <article class="workflow-step">
-            <span>04</span>
-            <h3>Save exactly where you want</h3>
-            <p>Pick the destination folder with the native Save dialog and move straight into editing or posting.</p>
+            <h3>Export the file</h3>
+            <p>Render to MP4 and save it wherever you want on disk.</p>
           </article>
         </div>
       </section>
 
-      <section class="proof-section" id="proof">
-        <div class="section-head narrow">
-          <p class="eyebrow">Output Fit</p>
-          <h2>Designed for clips that need to travel well.</h2>
-        </div>
-        <div class="proof-grid">
-          <article class="proof-card wide">
-            <div class="proof-frame ratio-landscape"></div>
-            <h3>Promo loops</h3>
-            <p>Ideal for landing-page hero videos, product teasers, or launch content that starts as front-end motion.</p>
-          </article>
-          <article class="proof-card">
-            <div class="proof-frame ratio-portrait"></div>
-            <h3>Vertical socials</h3>
-            <p>Build shorts, reels, and story-format clips from the same code-driven animation source.</p>
-          </article>
-          <article class="proof-card">
-            <div class="proof-frame ratio-square"></div>
-            <h3>Editor-ready files</h3>
-            <p>Export MP4s that drop cleanly into typical creative workflows instead of requiring awkward conversion first.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="downloads-section" id="downloads">
-        <div class="section-head narrow">
-          <p class="eyebrow">Get CODE2VIDEO</p>
-          <h2>Ship the app. Then flex it properly.</h2>
+      <section class="section downloads" id="downloads">
+        <div class="section-heading">
+          <p class="eyebrow">Downloads</p>
+          <h2>Get the desktop app.</h2>
         </div>
         <div class="download-grid">
           <article class="download-card">
-            <h3>Windows build</h3>
-            <p>Download the packaged Windows installer directly from the GitHub release.</p>
-            <a class="button button-primary" href="https://github.com/mechreaper007x/code2video-renderer/releases/download/v1.0.0/CODE2VIDEO-Setup.exe">Download for Windows</a>
+            <h3>Windows</h3>
+            <p>Installer build for normal desktop setup.</p>
+            <a class="button button-primary" href="https://github.com/mechreaper007x/code2video-renderer/releases/download/v1.0.0/CODE2VIDEO-Setup.exe">Download installer</a>
           </article>
-          <article class="download-card accent">
-            <h3>macOS build</h3>
-            <p>Download the packaged macOS app archive from the same release. Current state: beta build.</p>
-            <a class="button button-secondary" href="https://github.com/mechreaper007x/code2video-renderer/releases/download/v1.0.0/CODE2VIDEO-macos.zip">Download for macOS</a>
+          <article class="download-card">
+            <h3>macOS</h3>
+            <p>Beta archive containing the packaged macOS app.</p>
+            <a class="button button-secondary" href="https://github.com/mechreaper007x/code2video-renderer/releases/download/v1.0.0/CODE2VIDEO-macos.zip">Download beta build</a>
           </article>
         </div>
-        <p class="downloads-note">Release assets are hosted through GitHub Releases so the website can link to stable desktop downloads.</p>
       </section>
     </main>
 
     <footer class="site-footer">
-      <div>
-        <strong>CODE2VIDEO</strong>
-        <p>Desktop renderer for code-driven motion.</p>
-      </div>
-      <div class="footer-links">
-        <a href="#features">Features</a>
-        <a href="#workflow">Workflow</a>
-        <a href="#downloads">Downloads</a>
-      </div>
+      <p>CODE2VIDEO</p>
+      <a href="https://github.com/mechreaper007x/code2video-renderer/releases/tag/v1.0.0">View release</a>
     </footer>
   </div>
 </body>
